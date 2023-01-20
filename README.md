@@ -2,25 +2,27 @@
 
 ![](artifacts/images/homepage.png)
 
-## What's in the stack?
+## Stack Overview
 
 ### Multimedia
-* [Plex](https://www.plex.tv/)
-* [Sonarr](https://sonarr.tv/)
-* [Radarr](https://radarr.video/)
-* [Bazarr](https://www.bazarr.media/)
-* [Prowlarr](https://github.com/Jackett/Jackett)
-* [Deluge](https://deluge-torrent.org/) (built-in dark mode)
-* [Portainer 2.0](https://www.portainer.io/)
-* [Watchtower](https://github.com/containrrr/watchtower)
-* [Bookstack](https://github.com/BookStackApp/BookStack)
-* [Homer](https://github.com/bastienwirtz/homer)
+* [Plex](https://www.plex.tv/) - Media server software
+* [Sonarr](https://sonarr.tv/) - Automated TV show management
+* [Radarr](https://radarr.video/) - Automated movie management
+* [Bazarr](https://www.bazarr.media/) - Automated subtitle management
+* [Prowlarr](https://github.com/Prowlarr/Prowlarr) - Automated music management
+* [Deluge](https://deluge-torrent.org/) - Built-in dark mode torrent client
+* [Portainer 2.0](https://www.portainer.io/) - Docker management
+* [Watchtower](https://github.com/containrrr/watchtower) - Automated container updates
+* [Bookstack](https://github.com/BookStackApp/BookStack) - Self-hosted documentation platform
+* [Homer](https://github.com/bastienwirtz/homer) - Dead simple homepage solution
 
 ### Security
-* [OpenVPN](https://github.com/dperson/openvpn-client)
-* [Traefik](https://containo.us/traefik/)
-* [Let's Encrypt Automatic SSL certificates](https://letsencrypt.org/)
-* [Duplicati](https://www.duplicati.com/)
+* [OpenVPN](https://github.com/dperson/openvpn-client) - VPN client
+* [Traefik](https://containo.us/traefik/) - Reverse proxy and load balancer
+* [Let's Encrypt Automatic SSL certificates](https://letsencrypt.org/) - SSL certificate management
+* [Duplicati](https://www.duplicati.com/) - Backup software
+* [piHole](https://github.com/pi-hole/pi-hole) - Ad-blocking DNS server
+* [Bitwarden/Vaultwarden](https://github.com/dani-garcia/vaultwarden) - Password management
 
 ## Prerequisites
 * [Docker](https://www.docker.com/)
@@ -167,16 +169,17 @@ In my setup, /downloads path on Deluge, Sonarr and Radarr containers is mapped t
 
 ## Deluge Fix
 
-Occassionally, Deluge will fail the VPN connection and the IP Address in the menu on the bottom will display my local IP: 45.46.43.18. This is always bad news as it means that there is a leak.
+Occassionally, Deluge will fail the VPN connection and the IP Address in the menu on the bottom will display my local IP. This is always bad news as it means that there is a leak.
 Re-creating the container sometimes works, but is not very reliable. 
 
-To fix that permanently, I came across a fix on the forum: https://forum.deluge-torrent.org/viewtopic.php?t=49883&start=30
+To fix that permanently, I came across a [fix on the forum](https://forum.deluge-torrent.org/viewtopic.php?t=49883&start=30)
 
-The solution is to modify core.conf in the /data/mediabox/containers/deluge folder to force the *tun0* interface for outgoing and incoming connections.
+The solution is to modify **core.conf** in the **/data/mediabox/containers/deluge** folder to force the *tun0* interface for outgoing and incoming connections.
+
 To do that: 
 1. Ensure that docker container is in stopped state
-2. Update coreboth **listen_interface** and **outgoing_interface** with value **tun0** on core.conf.
-3. Start deluge and verify that the change is in effect
+2. Update coreboth **listen_interface** and **outgoing_interface** with value **tun0** in core.conf.
+3. Start deluge and verify that the change is in effect by observing the IP address in the lower toolbar.
 
 ## Homer
 
