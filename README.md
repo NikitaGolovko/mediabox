@@ -114,13 +114,9 @@ Use `docker-compose down` adding `-f` flag with the same compose files you used 
 Watchtower automatically updates all apps (if docker image update is available) at 4 AM every day.
 
 ## Custom domain + Let's Encrypt free certificates
-In case you own a domain like `example.com` and you'd like to configure subdomains pointing to your apps like `sonarr.example.com` or `plex.example.com`, do the following:
-1. Modify `.env`:
-```bash
-DOMAIN=example.com
-SSL_ACME_EMAIL=your_acme_email@address.com
-```
-2. Forward ports 80 and 443 to your mediabox (you can do that changing your router settings).
+I rely on cloudflare for Certificate provisioning. If you own a domain like `example.com` and you'd like to configure subdomains pointing to your apps like `sonarr.example.com` or `plex.example.com`, do the following:
+1. Get an account with [Cloudflare](https://www.cloudflare.com/) and obtain API TOKEN for your domain.
+2. Modify `.env` file with the CF_API_KEY and CF_API_EMAIL values
 3. Include `docker-compose.traefik.yml` when starting the stack
 4. Check the logs to verify everything is up and running: `docker logs -f traefik`
 
