@@ -1,0 +1,174 @@
+---
+# Homepage configuration
+# See https://fontawesome.com/v5/search for icons options
+
+title: "Dashboard"
+subtitle: "Bestbrook"
+logo: "logo.png"
+# icon: "fas fa-skull-crossbones" # Optional icon
+
+header: true
+footer: false #'<p>Created with <span class="has-text-danger">❤️</span> with <a href="https://bulma.io/">bulma</a>, <a href="https://vuejs.org/">vuejs</a> & <a href="https://fontawesome.com/">font awesome</a> // Fork me on <a href="https://github.com/bastienwirtz/homer"><i class="fab fa-github-alt"></i></a></p>' # set false if you want to hide it.
+
+# Optional theme customization
+theme: default
+colors:
+  light:
+    highlight-primary: "#3367d6"
+    highlight-secondary: "#4285f4"
+    highlight-hover: "#5a95f5"
+    background: "#f5f5f5"
+    card-background: "#ffffff"
+    text: "#363636"
+    text-header: "#ffffff"
+    text-title: "#303030"
+    text-subtitle: "#424242"
+    card-shadow: rgba(0, 0, 0, 0.1)
+    link: "#3273dc"
+    link-hover: "#363636"
+  dark:
+    highlight-primary: "#3367d6"
+    highlight-secondary: "#4285f4"
+    highlight-hover: "#5a95f5"
+    background: "#131313"
+    card-background: "#2b2b2b"
+    text: "#eaeaea"
+    text-header: "#ffffff"
+    text-title: "#fafafa"
+    text-subtitle: "#f5f5f5"
+    card-shadow: rgba(0, 0, 0, 0.4)
+    link: "#3273dc"
+    link-hover: "#ffdd57"
+
+# Optional message
+# message:
+#   #url: https://b4bz.io
+#   style: "is-dark" # See https://bulma.io/documentation/components/message/#colors for styling options.
+#   title: "Demo !"
+#   icon: "fa fa-grin"
+#   content: "This is am updated automatically dummy homepage demo. <br /> Find more information on <a href='https://github.com/bastienwirtz/homer'>github.com/bastienwirtz/homer</a>"
+
+# Optional navbar
+# links: [] # Allows for navbar (dark mode, layout, and search) without any links
+links:
+  - name: "HowTo"
+    icon: "fab fa-github"
+    url: "https://bookstack.bestbrook.me/books/selfhosting/page/mediabox"
+    target: "_blank" # optional html a tag target attribute
+  # - name: "Wiki"
+  #   icon: "fas fa-book"
+  #   url: "https://www.wikipedia.org/"
+  # this will link to a second homer page that will load config from additional-page.yml and keep default config values as in config.yml file
+  # see url field and assets/additional-page.yml.dist used in this example:
+  #- name: "another page!"
+  #  icon: "fas fa-file-alt"
+  #  url: "#additional-page" 
+
+# Services
+# First level array represent a group.
+# Leave only a "items" key if not using group (group name, icon & tagstyle are optional, section separation will not be displayed).
+services:
+  - name: "Media Applications"
+    icon: "fas fa-cloud"
+    items:
+      - name: "Radarr"
+        logo: "assets/icons/homer-icons/png/radarr.png"
+        subtitle: "Movie requests"
+        tag: "app"
+        keywords: "Movie Requests, Radarr"
+        url: "https://radarr.bestbrook.me/"
+        type: "Radarr"
+        apikey: ""
+        target: "_blank" # optional html a tag target attribute
+      - name: "Sonarr"
+        logo: "assets/icons/homer-icons/png/sonarr.png"
+        subtitle: "TV Show requests"
+        tag: "app"
+        keywords: "TV Show Requests, Sonarr"
+        url: "https://sonarr.bestbrook.me/"
+        type: "Sonarr"
+        apikey: "3d0e1889a175426787250c80b1d71104"
+        target: "_blank" # optional html a tag target attribute
+      - name: "Plex"
+        logo: "assets/icons/homer-icons/png/plex.png"
+        subtitle: "Streaming Service"
+        tag: "app"
+        keywords: "Plex Streaming Service"
+        url: "https://plex.bestbrook.me/"
+        target: "_blank" # optional html a tag target attribute
+      - name: "Deluge"
+        logo: "assets/icons/homer-icons/png/deluge.png"
+        subtitle: "Download Service"
+        tag: "app"
+        keywords: "Deluge Download Service"
+        url: "https://deluge.bestbrook.me/"
+        target: "_blank" # optional html a tag target attribute
+  - name: "Services"
+    icon: "fas fa-cloud"
+    items:
+      - name: "Vaultwarden"
+        logo: "assets/icons/homer-icons/png/vaultwarden.png"
+        subtitle: "Password Manager"
+        tag: "app"
+        keywords: "Password Manager, Bitwarden"
+        url: "https://bitwarden.bestbrook.me/"
+        target: "_blank" # optional html a tag target attribute
+      - name: "Nextcloud"
+        logo: "assets/icons/homer-icons/png/nextcloud.png"
+        subtitle: "File Management"
+        tag: "app"
+        keywords: "File Management, Backups, Nextcloud"
+        url: "https://nextcloud.bestbrook.me/"
+        target: "_blank" # optional html a tag target attribute
+      - name: "Bookstack"
+        logo: "assets/icons/homer-icons/png/bookstack.png"
+        subtitle: "Wiki"
+        tag: "app"
+        keywords: "Wiki, HowTo, Bookstack"
+        url: "https://bookstack.bestbrook.me/"
+        target: "_blank" # optional html a tag target attribute
+      - name: "Photoprism"
+        logo: "assets/icons/homer-icons/png/photoprism.png"
+        subtitle: "Photo Backups"
+        tag: "app"
+        keywords: "Photos, HowTo, Bookstack"
+        url: "http://192.168.29.226:2342/auth/login"
+        target: "_blank" # optional html a tag target attribute
+      - name: "Photoview"
+        logo: "assets/icons/homer-icons/png/photoview.png"
+        subtitle: "Photo Backups"
+        tag: "app"
+        keywords: "Photos, HowTo, Bookstack"
+        url: "http://192.168.29.226:8000/"
+        target: "_blank" # optional html a tag target attribute
+  - name: "Tools"
+    icon: "fas fa-cloud"
+    items:
+      - name: "PiHole"
+        logo: "assets/icons/homer-icons/png/pihole.png"
+        #subtitle: "A black hole for Internet advertisements"
+        #tag: "app"
+        #keywords: "DNS Management, Blocking, PiHole"
+        url: "https://pihole.bestbrook.me/admin"
+        type: "PiHole"
+        #type: "PiHole"
+        target: "_blank" # optional html a tag target attribute
+      - name: "Router Admin"
+        logo: "assets/icons/homer-icons/png/router.png"
+        subtitle: "Router Admin Page"
+        keywords: "Router Admin Page, T-Mobile"
+        url: "https://192.168.29.1/admin/"
+        target: "_blank" # optional html a tag target attribute
+      - name: "Portainer"
+        logo: "assets/icons/homer-icons/png/portainer.png"
+        subtitle: "Container management"
+        keywords: "Container management, Portainer"
+        url: "https://portainer.bestbrook.me/"
+        target: "_blank" # optional html a tag target attribute
+      - name: "Weather"
+        location: "Westbrook, US" # your location.
+        locationId: "4982753" # Optional: Specify OpenWeatherMap city ID for better accuracy
+        apikey: "" # insert your own API key here. Request one from https://openweathermap.org/api.
+        units: "metric" # units to display temperature. Can be one of: metric, imperial, kelvin. Defaults to kelvin.
+        background: "square" # choose which type of background you want behind the image. Can be one of: square, circle, none. Defaults to none.
+        type: "OpenWeather"

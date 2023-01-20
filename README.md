@@ -13,7 +13,8 @@
 * [Deluge](https://deluge-torrent.org/) (built-in dark mode)
 * [Portainer 2.0](https://www.portainer.io/)
 * [Watchtower](https://github.com/containrrr/watchtower)
-* [Organizr](https://github.com/causefx/Organizr)
+* [Bookstack](https://github.com/BookStackApp/BookStack)
+* [Homer](https://github.com/bastienwirtz/homer)
 
 ### Security
 * [OpenVPN](https://github.com/dperson/openvpn-client)
@@ -177,3 +178,15 @@ To do that:
 2. Update coreboth **listen_interface** and **outgoing_interface** with value **tun0** on core.conf.
 3. Start deluge and verify that the change is in effect
 
+## Homer
+
+Homer is a dead simple static homepage for your server to keep your services on hand, from a simple yaml configuration file.
+
+### Install/Setup
+Be sure to read the app specific documentation on github as the environment variables below are an extension of those explained in the documentation.
+
+Note that your configuration files and homer assets are located in ${CONTAINERS}/homer/assets (mapped to /www/assets).
+
+Example of my config is under /homer/assets/config.yml. 
+
+Additionally, I've used a [homer-icons](https://github.com/NX211/homer-icons) repository for icons on my homepage. 
