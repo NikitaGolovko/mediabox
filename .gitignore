@@ -1,0 +1,5 @@
+# .env.template must be copied
+.env
+.crt
+.ovpn
+.auth
