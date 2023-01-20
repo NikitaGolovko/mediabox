@@ -1,0 +1,144 @@
+version: '3.5'
+
+services:
+  nextcloud_app:
+    image: nextcloud:25
+    container_name: nextcloud_app
+    restart: always
+    networks:
+      default:
+        ipv4_address: 172.20.5.20
+    ports:
+      - 8088:80
+    links:
+      - nextcloud_db
+      - nextcloud_redis
+    depends_on:
+      - nextcloud_db
+      - nextcloud_redis
+    volumes:
+      - type: volume
+        source: nextcloud_app
+        target: /var/www/html
+      - type: volume
+        source: nextcloud_data
+        target: /var/www/html/data
+    environment:
+      #- SQLITE_DATABASE=owncloud
+      - MYSQL_HOST=nextcloud_db
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_PASSWORD=${NEXTCLOUD_MYSQL_PASSWORD}
+      - NEXTCLOUD_DATA_DIR=/var/www/html/data
+      - TRUSTED_PROXIES=172.20.5.0/24
+      - NEXTCLOUD_TRUSTED_DOMAINS=nextcloud.${DOMAIN}
+      - NEXTCLOUD_ADMIN_USER=${NEXTCLOUD_ADMIN_USER}
+      - NEXTCLOUD_ADMIN_PASSWORD=${NEXTCLOUD_ADMIN_PASSWORD_SPECIAL_CHARS}
+      - REDIS_HOST=nextcloud_redis
+      - REDIS_HOST_PASSWORD=${REDIS_NEXTCLOUD_PASSWORD}
+      - REDIS_HOST_PORT=6379
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.nextcloud_app.rule=Host(`nextcloud.${DOMAIN}`)
+      - traefik.http.routers.nextcloud_app.entrypoints=websecured
+      - traefik.http.routers.nextcloud_app.tls.certresolver=myresolver
+      - traefik.http.routers.nextcloud_app.middlewares=nextcloud,nextcloud_redirect
+      - traefik.http.routers.nextcloud_app.tls=true
+      - traefik.http.middlewares.nextcloud.headers.customFrameOptionsValue=ALLOW-FROM https://${DOMAIN}
+      - traefik.http.middlewares.nextcloud.headers.contentSecurityPolicy=frame-ancestors 'self' ${DOMAIN} *.${DOMAIN}
+      - traefik.http.middlewares.nextcloud.headers.stsSeconds=155520011
+      - traefik.http.middlewares.nextcloud.headers.stsIncludeSubdomains=true
+      - traefik.http.middlewares.nextcloud.headers.stsPreload=true
+      - traefik.http.middlewares.nextcloud.headers.customresponseheaders.X-Frame-Options=SAMEORIGIN
+      - traefik.http.middlewares.nextcloud_redirect.redirectregex.permanent=true
+      - traefik.http.middlewares.nextcloud_redirect.redirectregex.regex=https://(.*)/.well-known/(card|cal)dav
+      - traefik.http.middlewares.nextcloud_redirect.redirectregex.replacement=https://$${1}/remote.php/dav/
+
+  nextcloud_db:
+    image: linuxserver/mariadb
+    container_name: nextcloud_db
+    restart: always
+    networks:
+      default:
+        ipv4_address: 172.20.5.10
+    ports: 
+      - 3306:3306
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_PASSWORD=${NEXTCLOUD_MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${NEXTCLOUD_MYSQL_ROOT_PASSWORD}
+    volumes:
+      - type: volume
+        source: nextcloud_db
+        target: /var/lib/mysql
+      - type: volume
+        source: nextcloud_db_config
+        target: /config
+
+  nextcloud_redis:
+    image: redis:latest
+    container_name: nextcloud_redis
+    restart: always
+    command: redis-server --requirepass ${REDIS_NEXTCLOUD_PASSWORD}
+    networks:
+      default:
+        ipv4_address: 172.20.5.5
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}=value
+    volumes:
+      - type: volume
+        source: nextcloud_redis_data
+        target: /var/lib/redis
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    networks:
+      default:
+        ipv4_address: 172.20.5.100
+    links:
+      - nextcloud_db
+    ports:
+      - 8081:8080
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.adminer.rule=Host(`adminer.${DOMAIN}`)
+      - traefik.http.routers.adminer.entrypoints=websecured
+      - traefik.http.routers.adminer.tls.certresolver=myresolver
+
+volumes:
+  nextcloud_app:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/nextcloud_app
+  nextcloud_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/docs
+  nextcloud_db:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/nextcloud_db
+  nextcloud_db_config:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/nextcloud_db/config
+  nextcloud_redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/nextcloud_redis

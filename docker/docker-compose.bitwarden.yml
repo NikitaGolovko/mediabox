@@ -1,0 +1,41 @@
+version: '3.5'
+
+services:
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    restart: always
+    networks:
+      default:
+        ipv4_address: 172.20.5.30
+    ports:
+      - 6060:80
+    # see https://github.com/dani-garcia/vaultwarden/blob/1.25.2/.env.template
+    environment:
+      - DOMAIN=https://bitwarden.${DOMAIN}
+      - SIGNUPS_ALLOWED=false
+      - INVITATION_ORG_NAME="Homebase Vault"
+      - SMTP_FROM_NAME="Homebase Vault"
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_FROM=${SMTP_FROM}
+      - SMTP_PORT=${SMTP_PORT} 
+      - SMTP_SSL=${SMTP_SSL}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_SECURITY=force_tls
+    volumes:
+      - vaultwarden_data:/data
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+      - traefik.enable=true
+      - traefik.http.routers.bitwarden.rule=Host(`bitwarden.${DOMAIN}`)
+      - traefik.http.services.bitwarden.loadbalancer.server.port=80
+      - traefik.http.routers.bitwarden.entrypoints=websecured
+      - traefik.http.routers.bitwarden.tls.certresolver=myresolver
+volumes:
+  vaultwarden_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/bitwarden_data

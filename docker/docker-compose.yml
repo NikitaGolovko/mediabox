@@ -1,0 +1,291 @@
+version: "3.3"
+
+services:
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${CONTAINERS}/watchtower/config:/config
+    command: --label-enable --cleanup --schedule "0 0 4 * * *"
+    restart: unless-stopped
+
+  plex:
+    image: linuxserver/plex
+    container_name: plex
+    networks:
+      default:
+        ipv4_address: 172.20.1.1
+    ports:
+      - 32400:32400/tcp
+      - 32400:32400/udp
+      - 3005:3005/tcp
+      - 8324:8324/tcp
+      - 32469:32469/tcp
+      - 1900:1900/udp
+      - 32410:32410/udp
+      - 32412:32412/udp
+      - 32413:32413/udp
+      - 32414:32414/udp
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+      - traefik.enable=true
+      - traefik.http.routers.plex.rule=Host(`plex.${DOMAIN}`)
+      - traefik.http.routers.plex.entrypoints=websecured
+      - traefik.http.services.plex.loadbalancer.server.port=32400
+      - traefik.http.routers.plex.tls.certresolver=myresolver
+    environment:
+      - PUID=${PUID}
+      - PGID=995
+      - VERSION=docker
+      - ADVERTISE_IP="https://plex.${DOMAIN}:443"
+      - PLEX_CLAIM=${PLEX_CLAIM}
+    volumes:
+      - ${CONTAINERS}/plex/config:/config
+      - ${DATA}/Movies:/movies
+      - ${DATA}/TV:/tv
+      - ${DATA}/Music:/music
+
+    restart: unless-stopped
+
+  sonarr:
+    image: linuxserver/sonarr
+    container_name: sonarr
+    networks:
+      default:
+        ipv4_address: 172.20.1.2
+    ports:
+      - 8989:8989
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+      - traefik.enable=true
+      - traefik.http.routers.sonarr.rule=Host(`sonarr.${DOMAIN}`)
+      - traefik.http.routers.sonarr.entrypoints=websecured
+      - traefik.http.routers.sonarr.tls.certresolver=myresolver
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${CONTAINERS}/sonarr/config:/config
+      - ${DOWNLOADS}/torrents:/downloads # Not used
+      - ${DATA}:/data
+    restart: unless-stopped
+
+  radarr:
+    image: linuxserver/radarr
+    container_name: radarr
+    networks:
+      default:
+        ipv4_address: 172.20.1.3
+    ports:
+      - 7878:7878
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+      - traefik.enable=true
+      - traefik.http.routers.radarr.rule=Host(`radarr.${DOMAIN}`)
+      - traefik.http.routers.radarr.entrypoints=websecured
+      - traefik.http.routers.radarr.tls.certresolver=myresolver
+    environment:
+      - PUID=${PUID}
+      - PGID=995
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${CONTAINERS}/radarr/config:/config
+      - ${DOWNLOADS}/torrents:/downloads
+      - ${DATA}:/data
+    restart: unless-stopped
+
+  bazarr:
+    image: linuxserver/bazarr
+    container_name: bazarr
+    networks:
+      default:
+        ipv4_address: 172.20.1.4
+    ports:
+      - 6767:6767
+    depends_on:
+      - sonarr
+      - radarr
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+      - traefik.enable=true
+      - traefik.http.routers.bazarr.rule=Host(`bazarr.${DOMAIN}`)
+      - traefik.http.routers.bazarr.entrypoints=websecured
+      - traefik.http.routers.bazarr.tls.certresolver=myresolver
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${CONTAINERS}/bazarr/config:/config
+      - ${DATA}:/data
+    restart: unless-stopped
+
+  portainer:
+    image: portainer/portainer-ce
+    container_name: portainer
+    networks:
+      default:
+        ipv4_address: 172.20.2.2
+    ports:
+      - 9000:9000
+      - 8000:8000
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+      - traefik.enable=true
+      - traefik.http.routers.portainer.rule=Host(`portainer.${DOMAIN}`)
+      - traefik.http.routers.portainer.entrypoints=websecured
+      - traefik.http.routers.portainer.tls.certresolver=myresolver
+      - traefik.http.services.portainer.loadbalancer.server.port=9000
+    restart: always
+    command: -H unix:///var/run/docker.sock
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${CONTAINERS}/portainer:/data
+
+  portainer_agent:
+    image: portainer/agent
+    container_name: portainer-agent
+    networks:
+      default:
+        ipv4_address: 172.20.2.3
+    ports:
+      - 9001:9001
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/volumes:/var/lib/docker/volumes
+    restart: always
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+      - traefik.enable=false
+  duplicati:
+    image: linuxserver/duplicati
+    container_name: duplicati
+    networks:
+      default:
+        ipv4_address: 172.20.2.5
+    ports:
+      - 8200:8200
+    labels:
+      - com.centurylinklabs.duplicati.enable=true
+      - traefik.enable=true
+      - traefik.http.routers.duplicati.rule=Host(`duplicati.${DOMAIN}`)
+      - traefik.http.routers.duplicati.entrypoints=websecured
+      - traefik.http.routers.duplicati.tls.certresolver=myresolver
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${CONTAINERS}/duplicati/config:/config
+      - ${CONTAINERS}/duplicati/backups:/backups
+      - /:/source
+    restart: unless-stopped
+  
+  deemix:
+    image: registry.gitlab.com/bockiii/deemix-docker
+    container_name: deemix
+    networks:
+      default:
+        ipv4_address: 172.20.1.10
+    ports:
+      - 6595:6595
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.deemix.rule=Host(`deemix.${DOMAIN}`)
+      - traefik.http.routers.deemix.entrypoints=websecured
+      - traefik.http.routers.deemix.tls.certresolver=myresolver
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ${CONTAINERS}/deemix/config:/config
+      - ${DOWNLOADS}/deemix:/downloads
+  prowlarr:
+    image: ghcr.io/linuxserver/prowlarr:develop
+    container_name: prowlarr
+    networks:
+      default:
+        ipv4_address: 172.20.3.1
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${CONTAINERS}/prowlarr/config:/config
+    ports:
+      - 9696:9696
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.prowlarr.rule=Host(`prowlarr.${DOMAIN}`)
+      - traefik.http.routers.prowlarr.entrypoints=websecured
+      - traefik.http.routers.prowlarr.tls.certresolver=myresolver
+    restart: unless-stopped
+  bookstack:
+    image: linuxserver/bookstack
+    container_name: bookstack
+    networks:
+      default:
+        ipv4_address: 172.20.2.11
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+      - APP_URL=https://bookstack.${DOMAIN}
+      - DB_HOST=bookstack_db
+      - DB_USER=${BOOKSTACK_DB_USERNAME}
+      - DB_PASS=${BOOKSTACK_DB_PASSWORD}
+      - DB_DATABASE=bookstackapp
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.bookstack.rule=Host(`bookstack.${DOMAIN}`)
+      - traefik.http.routers.bookstack.entrypoints=websecured
+      - traefik.http.routers.bookstack.tls.certresolver=myresolver
+    volumes:
+      - ${CONTAINERS}/bookstack/config:/config
+    ports:
+      - 6875:6875
+    restart: unless-stopped
+    depends_on:
+      - bookstack_db
+  bookstack_db:
+    image: linuxserver/mariadb
+    container_name: bookstack_db
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TIMEZONE}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_DB_PASSWORD}
+      - MYSQL_DATABASE=bookstackapp
+      - MYSQL_USER=${BOOKSTACK_DB_USERNAME}
+      - MYSQL_PASSWORD=${BOOKSTACK_DB_PASSWORD}
+    volumes:
+      - ${CONTAINERS}/bookstack/db:/config
+    restart: unless-stopped
+  homer:
+    image: b4bz/homer
+    container_name: homer
+    networks:
+      default:
+        ipv4_address: 172.20.4.1
+    volumes:
+      - ${CONTAINERS}/homer/assets:/www/assets
+    environment:
+      - INIT_ASSETS=0 # default
+      - UID=${PUID}
+      - GID=${PGID}
+      - TZ=${TIMEZONE}
+    user: ${PUID}:${PGID}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.homer.rule=Host(`${DOMAIN}`)
+      - traefik.http.routers.homer.entrypoints=websecured
+      - traefik.http.routers.homer.tls.certresolver=myresolver
+networks:
+  default:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
