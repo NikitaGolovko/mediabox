@@ -1,5 +1,7 @@
 # .env.template must be copied
 .env
-.crt
-.ovpn
-.auth
+* .crt
+*.ovpn
+*.auth 
+.vs/
+.vscode/
