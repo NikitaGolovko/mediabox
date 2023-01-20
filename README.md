@@ -9,7 +9,7 @@
 * [Sonarr](https://sonarr.tv/) - Automated TV show management
 * [Radarr](https://radarr.video/) - Automated movie management
 * [Bazarr](https://www.bazarr.media/) - Automated subtitle management
-* [Prowlarr](https://github.com/Prowlarr/Prowlarr) - Automated music management
+* [Prowlarr](https://github.com/Prowlarr/Prowlarr) - Automated download management
 * [Deluge](https://deluge-torrent.org/) - Built-in dark mode torrent client
 * [Portainer 2.0](https://www.portainer.io/) - Docker management
 * [Watchtower](https://github.com/containrrr/watchtower) - Automated container updates
