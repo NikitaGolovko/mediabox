@@ -10,6 +10,82 @@ services:
       - ${CONTAINERS}/watchtower/config:/config
     command: --label-enable --cleanup --schedule "0 0 4 * * *"
     restart: unless-stopped
+  traefik:
+    image: traefik
+    restart: always
+    container_name: traefik
+    ports:
+      - 80:80
+      - 443:443
+      - 8080:8080 # traefik dashboard
+    command:
+      - --api.insecure=true
+      - --api.dashboard=false
+      - --api.debug=true
+      - --log.level=DEBUG
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=${COMPOSE_PROJECT_NAME}_default
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecured.address=:443
+      - --entrypoints.web.http.redirections.entryPoint.to=websecured
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.permanent=true
+      - --certificatesresolvers.myresolver.acme.dnschallenge=true
+      - --certificatesresolvers.myresolver.acme.dnschallenge.provider=cloudflare
+      - --certificatesresolvers.myresolver.acme.email=${SSL_ACME_EMAIL}
+      - --certificatesresolvers.myresolver.acme.storage=etc/traefik/acme/acme.json
+    environment:
+      - CF_API_EMAIL=${CF_API_EMAIL}
+      - CF_API_KEY=${CF_API_KEY}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${CONTAINERS}/traefik:/etc/traefik/acme
+    networks:
+      default:
+        ipv4_address: 172.20.50.1
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.api.rule=Host(`traefik.${DOMAIN}`)
+      - traefik.http.routers.api.service=api@internal
+      
+  portainer:
+    image: portainer/portainer-ce
+    container_name: portainer
+    networks:
+      default:
+        ipv4_address: 172.20.2.2
+    ports:
+      - 9000:9000
+      - 8000:8000
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+      - traefik.enable=true
+      - traefik.http.routers.portainer.rule=Host(`portainer.${DOMAIN}`)
+      - traefik.http.routers.portainer.entrypoints=websecured
+      - traefik.http.routers.portainer.tls.certresolver=myresolver
+      - traefik.http.services.portainer.loadbalancer.server.port=9000
+    restart: always
+    command: -H unix:///var/run/docker.sock
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${CONTAINERS}/portainer:/data
+
+  portainer_agent:
+    image: portainer/agent
+    container_name: portainer-agent
+    networks:
+      default:
+        ipv4_address: 172.20.2.3
+    ports:
+      - 9001:9001
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/volumes:/var/lib/docker/volumes
+    restart: always
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+      - traefik.enable=false
 networks:
   default:
     ipam:

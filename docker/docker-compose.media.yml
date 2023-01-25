@@ -1,16 +1,6 @@
 version: "3.3"
 
 services:
-  watchtower:
-    image: containrrr/watchtower
-    container_name: watchtower
-    network_mode: host
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ${CONTAINERS}/watchtower/config:/config
-    command: --label-enable --cleanup --schedule "0 0 4 * * *"
-    restart: unless-stopped
-
   plex:
     image: linuxserver/plex
     container_name: plex
@@ -123,43 +113,6 @@ services:
       - ${DATA}:/data
     restart: unless-stopped
 
-  portainer:
-    image: portainer/portainer-ce
-    container_name: portainer
-    networks:
-      default:
-        ipv4_address: 172.20.2.2
-    ports:
-      - 9000:9000
-      - 8000:8000
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
-      - traefik.enable=true
-      - traefik.http.routers.portainer.rule=Host(`portainer.${DOMAIN}`)
-      - traefik.http.routers.portainer.entrypoints=websecured
-      - traefik.http.routers.portainer.tls.certresolver=myresolver
-      - traefik.http.services.portainer.loadbalancer.server.port=9000
-    restart: always
-    command: -H unix:///var/run/docker.sock
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ${CONTAINERS}/portainer:/data
-
-  portainer_agent:
-    image: portainer/agent
-    container_name: portainer-agent
-    networks:
-      default:
-        ipv4_address: 172.20.2.3
-    ports:
-      - 9001:9001
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /var/lib/docker/volumes:/var/lib/docker/volumes
-    restart: always
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
-      - traefik.enable=false
   duplicati:
     image: linuxserver/duplicati
     container_name: duplicati
@@ -203,6 +156,7 @@ services:
     volumes:
       - ${CONTAINERS}/deemix/config:/config
       - ${DOWNLOADS}/deemix:/downloads
+
   prowlarr:
     image: ghcr.io/linuxserver/prowlarr:develop
     container_name: prowlarr
@@ -223,6 +177,7 @@ services:
       - traefik.http.routers.prowlarr.entrypoints=websecured
       - traefik.http.routers.prowlarr.tls.certresolver=myresolver
     restart: unless-stopped
+
   bookstack:
     image: linuxserver/bookstack
     container_name: bookstack
@@ -250,6 +205,7 @@ services:
     restart: unless-stopped
     depends_on:
       - bookstack_db
+
   bookstack_db:
     image: linuxserver/mariadb
     container_name: bookstack_db
@@ -264,6 +220,7 @@ services:
     volumes:
       - ${CONTAINERS}/bookstack/db:/config
     restart: unless-stopped
+
   homer:
     image: b4bz/homer
     container_name: homer

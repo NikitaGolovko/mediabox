@@ -81,29 +81,33 @@ cp .env.template .env
 
 ## Starting
 ```bash
-# Main stack
-docker-compose -f docker-compose.yml up -d
+# Main/utility stack. Includes custom domain/SSL cert support. 
+docker-compose -f docker-compose.main.yml up -d
 
-# Main stack + VPN Protected Torrenting
-docker-compose -f docker-compose.yml -f docker-compose.torrents-on-vpn.yml up -d
+
+# Main stack + utility/entertainment services
+docker-compose -f docker-compose.main.yml -f docker-compose.media.yml up -d
+
+# Main/utility stack + AdGuard
+docker-compose -f docker-compose.main.yml -f docker-compose.adguard.yml up -d
+
+# Main stack/services + VPN Protected Torrenting
+docker-compose -f docker-compose.main.yml -f docker-compose.media.yml -f docker-compose.torrents-on-vpn.yml up -d
 
 # Main stack + VPN Protected Torrenting + Plex Without Transcoding
-docker-compose -f docker-compose.yml -f docker-compose.torrents-on-vpn.yml up -d
+docker-compose -f docker-compose.main.yml -f docker-compose.media.yml -f docker-compose.torrents-on-vpn.yml up -d
 
-# Main stack + VPN Protected Torrenting + Custom domain & SSL certificates
-docker-compose -f docker-compose.yml -f docker-compose.torrents-on-vpn.yml -f docker-compose.traefik.yml up -d
-
-# Main stack + VPN Protected Torrenting + Custom domain & SSL certificates + Pihole
+# Main stack + VPN Protected Torrenting + Pihole
 docker-compose -f docker-compose.yml -f docker-compose.torrents-on-vpn.yml -f docker-compose.traefik.yml -f docker-compose.pihole.yml up -d
 
-# Main stack + VPN Protected Torrenting + Custom domain & SSL certificates + Pihole + Nextcloud
-docker-compose -f docker-compose.yml -f docker-compose.torrents-on-vpn.yml -f docker-compose.traefik.yml -f docker-compose.pihole.yml -f docker-compose.nextcloud.yml up -d
+# Main stack + VPN Protected Torrenting + Pihole + Nextcloud
+docker-compose -f docker-compose.main.yml -f docker-compose.media.yml -f docker-compose.torrents-on-vpn.yml -f docker-compose.pihole.yml -f docker-compose.nextcloud.yml up -d
 
-# Main stack + VPN Protected Torrenting + Custom domain & SSL certificates + Pihole + Nextcloud + Bitwarden
-docker-compose -f docker-compose.yml -f docker-compose.torrents-on-vpn.yml -f docker-compose.traefik.yml -f docker-compose.pihole.yml -f docker-compose.nextcloud.yml -f docker-compose.bitwarden.yml up -d
+# Main stack + VPN Protected Torrenting + Pihole + Nextcloud + Bitwarden
+docker-compose -f docker-compose.main.yml -f docker-compose.media.yml -f docker-compose.torrents-on-vpn.yml -f docker-compose.pihole.yml -f docker-compose.nextcloud.yml -f docker-compose.bitwarden.yml up -d
 
 # Main stack + VPN Protected Torrenting + Plex HW Transcoding
-docker-compose -f docker-compose.yml -f docker-compose.torrents-on-vpn.yml -f docker-compose.plex-hw.yml up -d
+docker-compose -f docker-compose.main.yml -f docker-compose.media.yml -f docker-compose.torrents-on-vpn.yml -f docker-compose.plex-hw.yml up -d
 
 ```
 
@@ -152,7 +156,6 @@ In my setup, /downloads path on Deluge, Sonarr and Radarr containers is mapped t
 # ├── 5tb
 # │   └── media (/media/storage/data)
 # │       ├── movies
-# │       ├── pictures
 # │       └── tv
 # ├── 2tb
 # │   └── Nextcloud docs (/media/docs)
