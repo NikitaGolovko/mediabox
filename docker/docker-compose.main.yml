@@ -1,0 +1,18 @@
+version: "3.3"
+
+services:
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${CONTAINERS}/watchtower/config:/config
+    command: --label-enable --cleanup --schedule "0 0 4 * * *"
+    restart: unless-stopped
+networks:
+  default:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
