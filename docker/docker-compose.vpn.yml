@@ -1,0 +1,25 @@
+version: "3.3"
+services:
+  wireguard:
+    container_name: wireguard
+    image: lscr.io/linuxserver/wireguard:latest
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - SERVERURL=${VPN_URL}
+      - SERVERPORT=${VPN_PORT}
+      - PEERS=${VPN_USERS}
+      - PEERDNS=172.20.4.20
+      - ALLOWEDIPS=0.0.0.0/0
+    networks:
+      default:
+        ipv4_address: 172.20.1.1
+    ports:
+      - 51820:51820/udp
+    volumes:
+      - /lib/modules:/lib/modules
+      - ${CONTAINERS}/wireguard:/config

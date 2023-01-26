@@ -88,8 +88,8 @@ docker-compose -f docker-compose.main.yml up -d
 # Main stack + utility/entertainment services
 docker-compose -f docker-compose.main.yml -f docker-compose.media.yml up -d
 
-# Main/utility stack + AdGuard
-docker-compose -f docker-compose.main.yml -f docker-compose.adguard.yml up -d
+# Main/utility stack + AdGuard + Personal VPN
+docker-compose -f docker-compose.main.yml -f docker-compose.adguard.yml -f docker-compose.adguard.yml up -d
 
 # Main stack/services + VPN Protected Torrenting
 docker-compose -f docker-compose.main.yml -f docker-compose.media.yml -f docker-compose.torrents-on-vpn.yml up -d
