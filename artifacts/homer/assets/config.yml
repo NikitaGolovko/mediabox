@@ -153,6 +153,11 @@ services:
         type: "PiHole"
         #type: "PiHole"
         target: "_blank" # optional html a tag target attribute
+      - name: "AdGuard"
+        logo: "assets/icons/homer-icons/png/adguardhome.png"
+        subtitle: "World's most advanced adblocker!"
+        url: "https://adguard.bestbrook.me/"
+        target: "_blank" # optional html a tag target attribute
       - name: "Router Admin"
         logo: "assets/icons/homer-icons/png/router.png"
         subtitle: "Router Admin Page"
