@@ -19,7 +19,7 @@ services:
       default:
         ipv4_address: 172.20.1.1
     ports:
-      - 51820:51820/udp
+      - ${VPN_PORT}:51820/udp
     volumes:
       - /lib/modules:/lib/modules
       - ${CONTAINERS}/wireguard:/config
