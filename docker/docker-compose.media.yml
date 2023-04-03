@@ -158,7 +158,7 @@ services:
       - ${DOWNLOADS}/deemix:/downloads
 
   prowlarr:
-    image: ghcr.io/linuxserver/prowlarr:develop
+    image: ghcr.io/linuxserver/prowlarr
     container_name: prowlarr
     networks:
       default:
