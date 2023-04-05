@@ -1,0 +1,110 @@
+version: "3.5"
+services:
+  paperless_redis:
+    image: redis:latest
+    container_name: paperless_redis
+    restart: unless-stopped
+    networks:
+      default:
+        ipv4_address: 172.20.6.5
+    volumes:
+      - paperless_redisdata:/data
+
+  paperless:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    container_name: paperless
+    restart: unless-stopped
+    networks:
+      default:
+        ipv4_address: 172.20.6.10
+    depends_on:
+      - paperless_redis
+      - paperless_gotenberg
+      - paperless_tika
+    ports:
+      - 8132:8000
+    #Disabled, due to the issue with the traefik. Don't enable unless you want 404s
+    #See more here: https://github.com/paperless-ngx/paperless-ngx/discussions/1347
+    # healthcheck:
+    #   test: ["CMD", "curl", "-fs", "-S", "--max-time", "2", "http://localhost:8132"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 5
+    volumes:
+      - paperless_export:/usr/src/paperless/export
+      - paperless_data:/usr/src/paperless/data
+      - paperless_media:/usr/src/paperless/media
+      - paperless_inbox:/usr/src/paperless/consume
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.paperless.rule=Host(`paperless.${DOMAIN}`)
+      - traefik.http.routers.paperless.entrypoints=websecured
+      - traefik.http.routers.paperless.tls.certresolver=myresolver
+    environment:
+      PAPERLESS_URL: "https://paperless.${DOMAIN}"
+      PAPERLESS_ALLOWED_HOSTS: localhost,${LOCAL_IP},paperless.${DOMAIN}
+      PAPERLESS_ADMIN_USER: ${PAPERLESS_ADMIN_USER}
+      PAPERLESS_ADMIN_PASSWORD: ${PAPERLESS_ADMIN_PASSWORD}
+      USERMAP_UID: ${PUID}
+      USERMAP_GID: ${PGID}
+      TZ: ${TIMEZONE}
+      PAPERLESS_REDIS: redis://paperless_redis:6379
+      PAPERLESS_TIKA_ENABLED: 1
+      PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://paperless_gotenberg:3000
+      PAPERLESS_TIKA_ENDPOINT: http://paperless_tika:9998
+
+  paperless_gotenberg:
+    image: docker.io/gotenberg/gotenberg:7.8
+    container_name: paperless_gotenberg
+    restart: unless-stopped
+    networks:
+      default:
+        ipv4_address: 172.20.6.40
+
+    # The gotenberg chromium route is used to convert .eml files. We do not
+    # want to allow external content like tracking pixels or even javascript.
+    command:
+      - "gotenberg"
+      - "--chromium-disable-javascript=true"
+      - "--chromium-allow-list=file:///tmp/.*"
+
+  paperless_tika:
+    image: ghcr.io/paperless-ngx/tika:latest
+    container_name: paperless_tika
+    restart: unless-stopped
+    networks:
+      default:
+        ipv4_address: 172.20.6.50
+
+
+volumes:
+  paperless_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/paperless_docs/data
+  paperless_media:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /media/paperless_docs/media
+  paperless_redisdata:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/paperless_redisdata
+  paperless_inbox:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/paperless_inbox
+  paperless_export:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/paperless_export
