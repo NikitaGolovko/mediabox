@@ -62,7 +62,7 @@ links:
   # see url field and assets/additional-page.yml.dist used in this example:
   #- name: "another page!"
   #  icon: "fas fa-file-alt"
-  #  url: "#additional-page" 
+  #  url: "#additional-page"
 
 # Services
 # First level array represent a group.
@@ -87,7 +87,7 @@ services:
         keywords: "TV Show Requests, Sonarr"
         url: "https://sonarr.bestbrook.me/"
         type: "Sonarr"
-        apikey: "3d0e1889a175426787250c80b1d71104"
+        apikey: ""
         target: "_blank" # optional html a tag target attribute
       - name: "Plex"
         logo: "assets/icons/homer-icons/png/plex.png"
@@ -126,6 +126,13 @@ services:
         tag: "app"
         keywords: "Wiki, HowTo, Bookstack"
         url: "https://bookstack.bestbrook.me/"
+        target: "_blank" # optional html a tag target attribute
+      - name: "Paperless"
+        logo: "assets/icons/homer-icons/png/paperless-ng.png"
+        subtitle: "Document storage"
+        tag: "app"
+        keywords: "Document Storage/Tracking"
+        url: "https://paperless.bestbrook.me/"
         target: "_blank" # optional html a tag target attribute
       - name: "Photoprism"
         logo: "assets/icons/homer-icons/png/photoprism.png"
@@ -170,10 +177,3 @@ services:
         keywords: "Container management, Portainer"
         url: "https://portainer.bestbrook.me/"
         target: "_blank" # optional html a tag target attribute
-      - name: "Weather"
-        location: "Westbrook, US" # your location.
-        locationId: "4982753" # Optional: Specify OpenWeatherMap city ID for better accuracy
-        apikey: "" # insert your own API key here. Request one from https://openweathermap.org/api.
-        units: "metric" # units to display temperature. Can be one of: metric, imperial, kelvin. Defaults to kelvin.
-        background: "square" # choose which type of background you want behind the image. Can be one of: square, circle, none. Defaults to none.
-        type: "OpenWeather"
