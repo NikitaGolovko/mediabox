@@ -14,8 +14,13 @@
 - [Deluge](https://deluge-torrent.org/) - Built-in dark mode torrent client
 - [Portainer 2.0](https://www.portainer.io/) - Docker management
 - [Watchtower](https://github.com/containrrr/watchtower) - Automated container updates
-- [Bookstack](https://github.com/BookStackApp/BookStack) - Self-hosted documentation platform
 - [Homer](https://github.com/bastienwirtz/homer) - Dead simple homepage solution
+
+### Home Utilities
+
+- [Bookstack](https://github.com/BookStackApp/BookStack) - Documentation platform/wiki
+- [Nextcloud](https://nextcloud.com/) - Online collaboration platform/file hosting service
+- [Paperless](https://github.com/paperless-ngx/paperless-ngx) - Document management systemm
 
 ### Security
 
