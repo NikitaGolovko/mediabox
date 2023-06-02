@@ -1,0 +1,64 @@
+version: "3.5"
+services:
+  mqtt:
+      image: eclipse-mosquitto:latest
+      container_name: "mqtt"
+      restart: always
+      ports:
+        - 1883:1883
+        - 9011:9001
+      volumes:
+        - mqqt_data:/mosquitto/data
+        - mqqt_config:/mosquitto/config
+        - mqqt_log:/mosquitto/log
+      environment:
+        - TZ=${TIMEZONE}
+
+  homeassistant:
+    image: homeassistant/home-assistant:latest     #Latest Production
+    container_name: "homeassistant"
+    restart: always
+    depends_on:
+      mqtt:
+        condition: service_started
+    ports:
+      - 8123:8123
+    volumes:
+      - homeassistant_config:/config
+    environment:
+      - TZ=${TIMEZONE}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+      - traefik.enable=true
+      - traefik.http.routers.homeassistant.rule=Host(`homeassistant.${DOMAIN}`)
+      - traefik.http.routers.homeassistant.entrypoints=websecured
+      - traefik.http.routers.homeassistant.tls.certresolver=myresolver
+      - traefik.http.services.homeassistant.loadbalancer.server.port=8123
+
+volumes:
+  homeassistant_config:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/homeassistant/config
+  mqqt_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/mqqt/data
+  mqqt_config:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/mqqt/config
+  mqqt_log:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/mqqt/log
