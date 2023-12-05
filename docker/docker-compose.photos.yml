@@ -1,40 +1,142 @@
-version: "3.3"
+version: "3.8"
 
 services:
-  photoview:
-    image: viktorstrate/photoview:latest
-    restart: always
-    ports:
-      - "8000:80"
+  immich-server:
+    container_name: immich_server
+    image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
+    command: ["start.sh", "immich"]
+    volumes:
+      - ${IMMICH_UPLOAD_LOCATION}:/usr/src/app/upload
+      - /etc/localtime:/etc/localtime:ro
+    env_file:
+      - immich.env
     depends_on:
-      - mariadbforphotoview
-    environment:
-      - PHOTOVIEW_DATABASE_DRIVER=mysql
-      - PHOTOVIEW_MYSQL_URL=photoview:photosecret@tcp(mariadbforphotoview)/photoview
-      - PHOTOVIEW_LISTEN_IP=photoview
-      - PHOTOVIEW_LISTEN_PORT=80
-      - PHOTOVIEW_MEDIA_CACHE=/app/cache
-      
-      # Optional: If you are using Samba/CIFS-Share and experience problems with "directory not found"
-      # Enable the following Godebug
-      # - GODEBUG=asyncpreemptoff=1
-      
-      
-      # Optional: To enable map related features, you need to create a mapbox token.
-      # A token can be generated for free here https://account.mapbox.com/access-tokens/
-      # It's a good idea to limit the scope of the token to your own domain, to prevent others from using it.
-      # - MAPBOX_TOKEN=<YOUR TOKEN HERE>
-
-    volumes:
-      - /media/photos/docker/storage/photoview/api_cache:/app/cache
-      - /media/photos/WIP:/photos:ro
-  mariadbforphotoview:
-    image: mariadb:10.5
+      - redis
+      - database
+      - typesense
     restart: always
-    environment:
-      MYSQL_DATABASE: "photoview"
-      MYSQL_USER: "photoview"
-      MYSQL_PASSWORD: "photosecret"
-      MYSQL_RANDOM_ROOT_PASSWORD: "R00tN33dToChng3Ths"
+    networks:
+      network_main:
+        ipv4_address: 172.20.9.10
+
+  immich-microservices:
+    container_name: immich_microservices
+    image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
+    extends:
+      file: docker-compose.photos-hw.yml
+      service: hwaccel
+    command: ["start.sh", "microservices"]
     volumes:
-      - /media/photos/docker/db/databasephotoview:/var/lib/mysql # DO NOT REMOVE
+      - ${IMMICH_UPLOAD_LOCATION}:/usr/src/app/upload
+      - /etc/localtime:/etc/localtime:ro
+    env_file:
+      - immich.env
+    depends_on:
+      - redis
+      - database
+      - typesense
+    restart: always
+    networks:
+      network_main:
+        ipv4_address: 172.20.9.5
+
+  immich-machine-learning:
+    container_name: immich_machine_learning
+    image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}
+    volumes:
+      - model-cache:/cache
+    env_file:
+      - immich.env
+    restart: always
+    networks:
+      network_main:
+        ipv4_address: 172.20.9.15
+
+  immich-web:
+    container_name: immich_web
+    image: ghcr.io/immich-app/immich-web:${IMMICH_VERSION:-release}
+    env_file:
+      - immich.env
+    restart: always
+    networks:
+      network_main:
+        ipv4_address: 172.20.9.20
+
+  typesense:
+    container_name: immich_typesense
+    image: typesense/typesense:0.24.1@sha256:9bcff2b829f12074426ca044b56160ca9d777a0c488303469143dd9f8259d4dd
+    env_file:
+      - immich.env
+    environment:
+      - TYPESENSE_API_KEY=${IMMICH_TYPESENSE_API_KEY}
+      - TYPESENSE_DATA_DIR=/data
+      # remove this to get debug messages
+      - GLOG_minloglevel=1
+    volumes:
+      - tsdata:/data
+    restart: always
+    networks:
+      network_main:
+        ipv4_address: 172.20.9.25
+
+  redis:
+    container_name: immich_redis
+    image: redis:6.2-alpine@sha256:70a7a5b641117670beae0d80658430853896b5ef269ccf00d1827427e3263fa3
+    restart: always
+    networks:
+      network_main:
+        ipv4_address: 172.20.9.30
+
+  database:
+    container_name: immich_postgres
+    image: postgres:14-alpine@sha256:28407a9961e76f2d285dc6991e8e48893503cc3836a4755bbc2d40bcc272a441
+    env_file:
+      - immich.env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: always
+    networks:
+      network_main:
+        ipv4_address: 172.20.9.35
+
+  immich-proxy:
+    container_name: immich_proxy
+    image: ghcr.io/immich-app/immich-proxy:${IMMICH_VERSION:-release}
+    env_file:
+      - immich.env
+    environment:
+      # Make sure these values get passed through from the env file
+      - IMMICH_SERVER_URL
+      - IMMICH_WEB_URL
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.immich.rule=Host(`immich.${DOMAIN}`)
+      - traefik.http.routers.immich.entrypoints=websecured
+      - traefik.http.routers.immich.tls.certresolver=myresolver
+    depends_on:
+      - immich-server
+      - immich-web
+    restart: always
+    networks:
+      network_main:
+        ipv4_address: 172.20.9.40
+
+volumes:
+  pgdata:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/immich/pgdata
+  model-cache:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/immich/model-cache
+  tsdata:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/immich/tsdata
