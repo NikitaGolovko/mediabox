@@ -1,0 +1,113 @@
+version: "3.5"
+services:
+  recipes_db:
+    restart: always
+    image: postgres:15-alpine
+    container_name: recipes_db
+    volumes:
+      - ${CONTAINERS}/recipes/postgresql:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_HOST=${TANDOOR_POSTGRES_HOST}
+      - POSTGRES_PORT=${TANDOOR_POSTGRES_PORT}
+      - POSTGRES_USER=${TANDOOR_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${TANDOOR_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${TANDOOR_POSTGRES_DB}
+    networks:
+      network_main:
+        ipv4_address: 172.20.8.20
+
+  web_recipes:
+    restart: always
+    container_name: recipes_web
+    image: vabene1111/recipes
+    environment:
+      - TIMEZONE=${TIMEZONE}
+      - DEBUG=0
+      - SQL_DEBUG=0
+      - DEBUG_TOOLBAR=0
+      - ALLOWED_HOSTS=recipes.${DOMAIN}
+      - SECRET_KEY=${TANDOOR_SECRET_KEY}
+      - DB_ENGINE=${DB_ENGINE}
+      - POSTGRES_HOST=${TANDOOR_POSTGRES_HOST}
+      - POSTGRES_PORT=${TANDOOR_POSTGRES_PORT}
+      - POSTGRES_USER=${TANDOOR_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${TANDOOR_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${TANDOOR_POSTGRES_DB}
+      - FRACTION_PREF_DEFAULT=0
+      - COMMENT_PREF_DEFAULT=1
+      - SHOPPING_MIN_AUTOSYNC_INTERVAL=5
+      - GUNICORN_MEDIA=0
+      - EMAIL_HOST=${SMTP_HOST}
+      - EMAIL_PORT=${SMTP_PORT}
+      - EMAIL_HOST_USER=${SMTP_USERNAME}
+      - EMAIL_HOST_PASSWORD=${SMTP_PASSWORD}
+      - DEFAULT_FROM_EMAIL=${SMTP_FROM}
+      - EMAIL_USE_SSL=1
+      - REMOTE_USER_AUTH=0
+    volumes:
+      - recipes_staticfiles:/opt/recipes/staticfiles
+      # Do not make this a bind mount, see https://docs.tandoor.dev/install/docker/#volumes-vs-bind-mounts
+      - recipes_nginx_config:/opt/recipes/nginx/conf.d
+      - recipes_mediafiles:/opt/recipes/mediafiles
+    depends_on:
+      - recipes_db
+    networks:
+      network_main:
+        ipv4_address: 172.20.8.10
+
+  nginx_recipes:
+    image: nginx:mainline-alpine
+    container_name: recipes_nginx
+    restart: always
+    volumes:
+      # Do not make this a bind mount, see https://docs.tandoor.dev/install/docker/#volumes-vs-bind-mounts
+      - recipes_nginx_config:/etc/nginx/conf.d:ro
+      - recipes_staticfiles:/static:ro
+      - recipes_mediafiles:/media:ro
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.recipes.rule=Host(`recipes.${DOMAIN}`)
+      - traefik.http.routers.recipes.entrypoints=websecured
+      - traefik.http.routers.recipes.tls.certresolver=myresolver
+
+    depends_on:
+      - web_recipes
+    networks:
+      network_main:
+        ipv4_address: 172.20.8.5
+
+  adminer:
+      image: adminer
+      container_name: adminer1
+      restart: always
+      networks:
+        network_main:
+          ipv4_address: 172.20.8.100
+      links:
+        - recipes_db
+      labels:
+        - com.centurylinklabs.watchtower.enable=true
+        - traefik.enable=true
+        - traefik.http.routers.adminer1.rule=Host(`adminer1.${DOMAIN}`)
+        - traefik.http.routers.adminer1.entrypoints=websecured
+        - traefik.http.routers.adminer1.tls.certresolver=myresolver
+
+volumes:
+  recipes_nginx_config:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/recipes/nginx_config
+  recipes_staticfiles:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/recipes/staticfiles
+  recipes_mediafiles:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/recipes/mediafiles
