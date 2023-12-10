@@ -75,6 +75,23 @@ services:
     restart: always
     labels:
       - com.centurylinklabs.watchtower.enable=true
+  homer:
+    image: b4bz/homer
+    container_name: homer
+    networks:
+      network_main:
+        ipv4_address: 172.20.4.1
+    ports:
+      - 8092:8080
+    volumes:
+      - /home/nikita/repo/docker/data/homer/assets:/www/assets
+    environment:
+      - INIT_ASSETS=0 # default
+      - UID=${PUID}
+      - GID=${PGID}
+      - TZ=${TIMEZONE}
+    user: ${PUID}:${PGID}
+
 networks:
   network_main:
     ipam:

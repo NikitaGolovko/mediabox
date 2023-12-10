@@ -64,33 +64,12 @@ services:
       - recipes_nginx_config:/etc/nginx/conf.d:ro
       - recipes_staticfiles:/static:ro
       - recipes_mediafiles:/media:ro
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.recipes.rule=Host(`recipes.${DOMAIN}`)
-      - traefik.http.routers.recipes.entrypoints=websecured
-      - traefik.http.routers.recipes.tls.certresolver=myresolver
 
     depends_on:
       - web_recipes
     networks:
       network_main:
         ipv4_address: 172.20.8.5
-
-  adminer:
-      image: adminer
-      container_name: adminer1
-      restart: always
-      networks:
-        network_main:
-          ipv4_address: 172.20.8.100
-      links:
-        - recipes_db
-      labels:
-        - com.centurylinklabs.watchtower.enable=true
-        - traefik.enable=true
-        - traefik.http.routers.adminer1.rule=Host(`adminer1.${DOMAIN}`)
-        - traefik.http.routers.adminer1.entrypoints=websecured
-        - traefik.http.routers.adminer1.tls.certresolver=myresolver
 
 volumes:
   recipes_nginx_config:
