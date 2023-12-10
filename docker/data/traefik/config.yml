@@ -1,0 +1,62 @@
+http:
+  routers:
+    nextcloud:
+      entrypoints:
+        - "https"
+      rule: "Host(`nextcloud.bestbrook.me`)"
+      middlewares:
+        - https-redirect
+        - nextcloud-secure-headers
+      tls:
+        domains:
+          - main: "nextcloud.bestbrook.me"
+      service: nextcloud
+    portainer1:
+      entrypoints:
+        - "https"
+      rule: "Host(`portainer1.bestbrook.me`)"
+      middlewares:
+        - https-redirect
+      tls:
+        domains:
+          - main: "portainer1.bestbrook.me"
+      service: portainer1
+    bitwarden:
+      entrypoints:
+        - "https"
+      rule: "Host(`bitwarden.bestbrook.me`)"
+      middlewares:
+        - https-redirect
+      tls:
+        domains:
+          - main: "bitwarden.bestbrook.me"
+      service: bitwarden
+  services:
+    nextcloud:
+      loadBalancer:
+        servers:
+          - url: "http://172.19.0.2:11000"
+        passHostHeader: true
+    portainer1:
+      loadBalancer:
+        servers:
+          - url: "http://172.20.2.2:9000"
+        passHostHeader: true
+    bitwarden:
+      loadBalancer:
+        servers:
+          - url: "http://172.20.5.30:80"
+        passHostHeader: true
+  middlewares:
+    https-redirect:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+    nextcloud-secure-headers:
+      headers:
+        hostsProxyHeaders:
+          - "X-Forwarded-Host"
+        referrerPolicy: "same-origin"
+        customResponseHeaders:
+          X-Robots-Tag: "none"
