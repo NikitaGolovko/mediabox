@@ -31,6 +31,26 @@ http:
         domains:
           - main: "bitwarden.bestbrook.me"
       service: bitwarden
+    recipes_nginx:
+      entrypoints:
+        - "https"
+      rule: "Host(`recipes.bestbrook.me`)"
+      middlewares:
+        - https-redirect
+      tls:
+        domains:
+          - main: "recipes.bestbrook.me"
+      service: recipes_nginx
+    homer:
+      entrypoints:
+        - "https"
+      rule: "Host(`bestbrook.me`)"
+      middlewares:
+        - https-redirect
+      tls:
+        domains:
+          - main: "bestbrook.me"
+      service: homer
   services:
     nextcloud:
       loadBalancer:
@@ -46,6 +66,16 @@ http:
       loadBalancer:
         servers:
           - url: "http://172.20.5.30:80"
+        passHostHeader: true
+    recipes_nginx:
+      loadBalancer:
+        servers:
+          - url: "http://172.20.8.5:80"
+        passHostHeader: true
+    homer:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:8092"
         passHostHeader: true
   middlewares:
     https-redirect:
