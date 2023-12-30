@@ -1,0 +1,19 @@
+version: '3.5'
+
+services:
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    networks:
+      network_main:
+        ipv4_address: 172.20.5.100
+    links:
+      - nextcloud_db
+    ports:
+      - 8081:8080
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.adminer.rule=Host(`adminer.${DOMAIN}`)
+      - traefik.http.routers.adminer.entrypoints=websecured
+      - traefik.http.routers.adminer.tls.certresolver=myresolver

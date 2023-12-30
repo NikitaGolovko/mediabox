@@ -10,7 +10,7 @@ services:
       - DNS=${VPN_DNS}
       - TZ=${TIMEZONE}
     networks:
-      default:
+      network_main:
         ipv4_address: 172.20.50.2
     read_only: false
     tmpfs:
@@ -26,14 +26,6 @@ services:
       - ${CONTAINERS}/openvpn:/vpn
     labels:
       - com.centurylinklabs.watchtower.enable=true
-      - traefik.enable=true
-      #
-      # Exposed containers
-      # See more @ https://community.containo.us/t/docker-compose-with-network-mode-service-service-name/3395
-      #
-      - traefik.http.routers.deluge.entrypoints=websecured
-      - traefik.http.routers.deluge.tls.certresolver=myresolver
-      - traefik.http.routers.deluge.rule=Host(`deluge.${DOMAIN}`)
     ports:
       - 8112:8112 # Deluge
 
@@ -45,10 +37,6 @@ services:
       - vpn
     labels:
       - com.centurylinklabs.watchtower.enable=true
-      - traefik.enable=true
-      - traefik.http.routers.deluge.rule=Host(`deluge.${DOMAIN}`)
-      - traefik.http.routers.deluge.entrypoints=websecured
-      - traefik.http.routers.deluge.tls.certresolver=myresolver
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
