@@ -1,5 +1,25 @@
 http:
   routers:
+    paperless:
+      service: "paperless"
+      entrypoints:
+        - "https"
+      rule: "Host(`paperless.bestbrook.me`)"
+      middlewares:
+        - https-redirect
+      tls:
+        domains:
+          - main: "paperless.bestbrook.me"
+    adminer:
+      service: "adminer"
+      entrypoints:
+        - "https"
+      rule: "Host(`adminer.bestbrook.me`)"
+      middlewares:
+        - https-redirect
+      tls:
+        domains:
+          - main: "adminer.bestbrook.me"
     nextcloud:
       entrypoints:
         - "https"
@@ -122,6 +142,16 @@ http:
           - main: "bestbrook.me"
       service: homer
   services:
+    paperless:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:8132"
+        passHostHeader: true
+    adminer:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:8081"
+        passHostHeader: true
     nextcloud:
       loadBalancer:
         servers:
@@ -165,7 +195,7 @@ http:
     bookstack:
       loadBalancer:
         servers:
-          - url: "http://172.20.7.75:6875"
+          - url: "http://127.0.0.1:6875"
         passHostHeader: true
     deluge:
       loadBalancer:
