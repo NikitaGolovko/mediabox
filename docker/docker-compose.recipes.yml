@@ -54,6 +54,7 @@ services:
     networks:
       mediabox_network_main:
         ipv4_address: 172.20.8.10
+volumes:
   recipes_staticfiles:
     driver: local
     driver_opts:
