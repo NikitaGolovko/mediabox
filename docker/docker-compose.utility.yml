@@ -1,11 +1,11 @@
-version: '3.9'
+#version: '3.9'
 services:
   adminer:
     image: adminer
     container_name: adminer
     restart: always
     networks:
-      network_main:
+      mediabox_network_main:
         ipv4_address: 172.20.5.100
     ports:
       - 8081:8080

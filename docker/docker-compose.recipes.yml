@@ -1,8 +1,8 @@
-version: "3.5"
+#version: "3.5"
 services:
   recipes_db:
     restart: always
-    image: postgres:15-alpine
+    image: postgres:16-alpine
     container_name: recipes_db
     volumes:
       - ${CONTAINERS}/recipes/postgresql:/var/lib/postgresql/data
@@ -13,15 +13,15 @@ services:
       - POSTGRES_PASSWORD=${TANDOOR_POSTGRES_PASSWORD}
       - POSTGRES_DB=${TANDOOR_POSTGRES_DB}
     networks:
-      network_main:
+      mediabox_network_main:
         ipv4_address: 172.20.8.20
 
   web_recipes:
     restart: always
     container_name: recipes_web
-    image: vabene1111/recipes
+    image: ghcr.io/tandoorrecipes/recipes
     environment:
-      - TIMEZONE=${TIMEZONE}
+      - TZ=${TIMEZONE}
       - DEBUG=0
       - SQL_DEBUG=0
       - DEBUG_TOOLBAR=0
@@ -47,37 +47,13 @@ services:
     volumes:
       - recipes_staticfiles:/opt/recipes/staticfiles
       # Do not make this a bind mount, see https://docs.tandoor.dev/install/docker/#volumes-vs-bind-mounts
-      - recipes_nginx_config:/opt/recipes/nginx/conf.d
+      #- recipes_nginx_config:/opt/recipes/nginx/conf.d
       - recipes_mediafiles:/opt/recipes/mediafiles
     depends_on:
       - recipes_db
     networks:
-      network_main:
+      mediabox_network_main:
         ipv4_address: 172.20.8.10
-
-  nginx_recipes:
-    image: nginx:mainline-alpine
-    container_name: recipes_nginx
-    restart: always
-    volumes:
-      # Do not make this a bind mount, see https://docs.tandoor.dev/install/docker/#volumes-vs-bind-mounts
-      - recipes_nginx_config:/etc/nginx/conf.d:ro
-      - recipes_staticfiles:/static:ro
-      - recipes_mediafiles:/media:ro
-
-    depends_on:
-      - web_recipes
-    networks:
-      network_main:
-        ipv4_address: 172.20.8.5
-
-volumes:
-  recipes_nginx_config:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${CONTAINERS}/recipes/nginx_config
   recipes_staticfiles:
     driver: local
     driver_opts:

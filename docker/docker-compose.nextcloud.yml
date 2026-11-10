@@ -1,4 +1,4 @@
-version: '3.9'
+#version: '3.9'
 
 services:
   nextcloud-aio-mastercontainer:
@@ -13,7 +13,7 @@ services:
     ports:
       - 8040:8080
     networks:
-      network_main:
+      mediabox_network_main:
         ipv4_address: 172.20.5.20
     environment: # Is needed when using any of the options below
       - SKIP_DOMAIN_VALIDATION=true

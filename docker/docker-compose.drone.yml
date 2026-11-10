@@ -1,0 +1,87 @@
+name: dronebub
+
+services:
+  db:
+    image: opendronemap/webodm_db
+    container_name: db
+    expose:
+      - "5438"
+    volumes:
+      - dbdata:/var/lib/postgresql/data:Z
+    restart: unless-stopped
+    oom_score_adj: -100
+    networks:
+      mediabox_network_main:
+        ipv4_address: 172.20.12.2
+
+  webodm_webapp:
+    image: opendronemap/webodm_webapp
+    container_name: webodm_webapp
+    entrypoint: /bin/bash -c "chmod +x /webodm/*.sh && /bin/bash -c \"/webodm/wait-for-postgres.sh db /webodm/wait-for-it.sh -t 0 webodm_broker:6379 -- /webodm/start.sh\""
+    volumes:
+      - appmedia:/webodm/app/media:z
+    ports:
+      - "${WO_PORT}:8000"
+    depends_on:
+      - db
+      - webodm_broker
+      - webodm_worker
+    environment:
+      - UID=${PUID}
+      - GID=${PGID}
+      - TZ=${TIMEZONE}
+      - WO_PORT=${WO_PORT}
+      - WO_HOST=${WO_HOST}
+      - WO_DEBUG=${WO_DEBUG}
+      - WO_BROKER=${WO_BROKER}
+      - WO_DEV=${WO_DEV}
+      - WO_DEV_WATCH_PLUGINS=${WO_DEV_WATCH_PLUGINS}
+      - WO_SECRET_KEY=${WO_SECRET_KEY}
+    restart: unless-stopped
+    oom_score_adj: 0
+    networks:
+      mediabox_network_main:
+        ipv4_address: 172.20.12.3
+
+  webodm_broker:
+    image: redis:7.0.10
+    container_name: webodm_broker
+    restart: unless-stopped
+    oom_score_adj: -500
+    networks:
+      mediabox_network_main:
+        ipv4_address: 172.20.12.4
+
+  webodm_worker:
+    image: opendronemap/webodm_webapp
+    container_name: webodm_worker
+    entrypoint: /bin/bash -c "/webodm/wait-for-postgres.sh db /webodm/wait-for-it.sh -t 0 webodm_broker:6379 -- /webodm/wait-for-it.sh -t 0 webodm_webapp:8000 -- /webodm/worker.sh start"
+    volumes:
+      - appmedia:/webodm/app/media:z
+    depends_on:
+      - db
+      - webodm_broker
+    environment:
+      - UID=${PUID}
+      - GID=${PGID}
+      - WO_BROKER=${WO_BROKER}
+      - WO_DB_HOST=db
+    restart: unless-stopped
+    oom_score_adj: 250
+    networks:
+      mediabox_network_main:
+        ipv4_address: 172.20.12.5
+
+volumes:
+  dbdata:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/webodm/db
+  appmedia:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/webodm/media

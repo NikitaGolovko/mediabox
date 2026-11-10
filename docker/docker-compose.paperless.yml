@@ -1,11 +1,11 @@
-version: "3.5"
+#version: "3.5"
 services:
   paperless_redis:
     image: redis:latest
     container_name: paperless_redis
     restart: unless-stopped
     networks:
-      network_main:
+      mediabox_network_main:
         ipv4_address: 172.20.6.5
     volumes:
       - paperless_redisdata:/data
@@ -15,7 +15,7 @@ services:
     container_name: paperless
     restart: unless-stopped
     networks:
-      network_main:
+      mediabox_network_main:
         ipv4_address: 172.20.6.10
     depends_on:
       - paperless_redis
@@ -56,7 +56,7 @@ services:
     container_name: paperless_gotenberg
     restart: unless-stopped
     networks:
-      network_main:
+      mediabox_network_main:
         ipv4_address: 172.20.6.40
 
     # The gotenberg chromium route is used to convert .eml files. We do not
@@ -71,7 +71,7 @@ services:
     container_name: paperless_tika
     restart: unless-stopped
     networks:
-      network_main:
+      mediabox_network_main:
         ipv4_address: 172.20.6.50
 
 
