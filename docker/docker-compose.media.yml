@@ -260,3 +260,38 @@ services:
     volumes:
       - ${CONTAINERS}/bookstack/db:/config
     restart: unless-stopped
+
+
+  navidrome:
+    image: deluan/navidrome:latest
+    container_name: navidrome
+    networks:
+      mediabox_network_main:
+        ipv4_address: 172.20.7.81
+    ports:
+      - "4533:4533"
+    environment:
+      - ND_SCANSCHEDULE=1h
+      - ND_LOGLEVEL=info
+    user: "${PUID}:${PGID}"
+    volumes:
+      - ${CONTAINERS}/navidrome/data:/data
+      - ${DATA}/Music:/music:ro
+    restart: unless-stopped
+
+  subwave:
+    image: ghcr.io/perminder-klair/subwave-aio:latest
+    container_name: subwave
+    networks:
+      mediabox_network_main:
+        ipv4_address: 172.20.7.85
+    ports:
+      - "7700:80"
+    environment:
+      - ADMIN_USER=${SUBWAVE_ADMIN_USER}
+      - ADMIN_PASS=${SUBWAVE_ADMIN_PASS}
+      - SITE_URL=https://radio.${DOMAIN}
+      - TZ=America/New_York
+    volumes:
+      - ${CONTAINERS}/subwave/data:/var/sub-wave
+    restart: unless-stopped
