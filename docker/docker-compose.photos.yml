@@ -1,40 +1,122 @@
-version: "3.3"
+#version: "3.9"
+name: immich
 
 services:
-  photoview:
-    image: viktorstrate/photoview:latest
-    restart: always
-    ports:
-      - "8000:80"
-    depends_on:
-      - mariadbforphotoview
-    environment:
-      - PHOTOVIEW_DATABASE_DRIVER=mysql
-      - PHOTOVIEW_MYSQL_URL=photoview:photosecret@tcp(mariadbforphotoview)/photoview
-      - PHOTOVIEW_LISTEN_IP=photoview
-      - PHOTOVIEW_LISTEN_PORT=80
-      - PHOTOVIEW_MEDIA_CACHE=/app/cache
-      
-      # Optional: If you are using Samba/CIFS-Share and experience problems with "directory not found"
-      # Enable the following Godebug
-      # - GODEBUG=asyncpreemptoff=1
-      
-      
-      # Optional: To enable map related features, you need to create a mapbox token.
-      # A token can be generated for free here https://account.mapbox.com/access-tokens/
-      # It's a good idea to limit the scope of the token to your own domain, to prevent others from using it.
-      # - MAPBOX_TOKEN=<YOUR TOKEN HERE>
+  immich-server:
+    container_name: immich_server
+    image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
+    extends:
+      file: hwaccel.transcoding.yml
+      service: nvenc
 
     volumes:
-      - /media/photos/docker/storage/photoview/api_cache:/app/cache
-      - /media/photos/WIP:/photos:ro
-  mariadbforphotoview:
-    image: mariadb:10.5
-    restart: always
+      - ${IMMICH_UPLOAD_LOCATION}:/usr/src/app/upload
+      - /mnt/wd_5tb_2/WIP/Photos/AllPhotos/:/mnt/media/external-archive:ro
+      - /etc/localtime:/etc/localtime:ro
+
+    env_file:
+      - .env
+
     environment:
-      MYSQL_DATABASE: "photoview"
-      MYSQL_USER: "photoview"
-      MYSQL_PASSWORD: "photosecret"
-      MYSQL_RANDOM_ROOT_PASSWORD: "R00tN33dToChng3Ths"
+      - DB_USERNAME=${IMMICH_DB_USERNAME}
+      - DB_PASSWORD=${IMMICH_DB_PASSWORD}
+      - DB_DATABASE_NAME=${IMMICH_DB_DATABASE_NAME}
+
+    depends_on:
+      - redis
+      - database
+
+    networks:
+      mediabox_network_main:
+        ipv4_address: 172.20.9.10
+
+    ports:
+      - 2283:2283
+
+    restart: always
+
+    healthcheck:
+      disable: false
+
+
+  immich-machine-learning:
+    container_name: immich_machine_learning
+    image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}-cuda
+
+    extends:
+      file: hwaccel.ml.yml
+      service: cuda
+
     volumes:
-      - /media/photos/docker/db/databasephotoview:/var/lib/mysql # DO NOT REMOVE
+      - model-cache:/cache
+
+    env_file:
+      - .env
+
+    networks:
+      mediabox_network_main:
+        ipv4_address: 172.20.9.15
+
+    restart: always
+
+    healthcheck:
+      disable: false
+
+
+  redis:
+    container_name: immich_redis
+
+    image: docker.io/valkey/valkey:9@sha256:c123e3715db63d06d4ad6964884037aa0d5d4d703939b9929954112889708e1d
+
+    healthcheck:
+      test: redis-cli ping | grep -q PONG || exit 1
+
+    networks:
+      mediabox_network_main:
+        ipv4_address: 172.20.9.30
+
+    restart: always
+
+
+  database:
+    container_name: immich_postgres
+
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23
+
+    environment:
+      POSTGRES_PASSWORD: ${IMMICH_DB_PASSWORD}
+      POSTGRES_USER: ${IMMICH_DB_USERNAME}
+      POSTGRES_DB: ${IMMICH_DB_DATABASE_NAME}
+      POSTGRES_INITDB_ARGS: '--data-checksums'
+    env_file:
+      - .env
+
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+    shm_size: 128mb
+
+    networks:
+      mediabox_network_main:
+        ipv4_address: 172.20.9.35
+
+    restart: always
+
+    healthcheck:
+      disable: false
+
+
+volumes:
+  pgdata:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/immich/pgdata
+
+  model-cache:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/immich/model-cache

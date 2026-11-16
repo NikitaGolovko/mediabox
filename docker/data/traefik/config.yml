@@ -1,0 +1,222 @@
+http:
+  routers:
+    paperless:
+      service: "paperless"
+      entrypoints:
+        - "https"
+      rule: "Host(`paperless.bestbrook.me`)"
+      middlewares:
+        - https-redirect
+      tls:
+        domains:
+          - main: "paperless.bestbrook.me"
+    adminer:
+      service: "adminer"
+      entrypoints:
+        - "https"
+      rule: "Host(`adminer.bestbrook.me`)"
+      middlewares:
+        - https-redirect
+      tls:
+        domains:
+          - main: "adminer.bestbrook.me"
+    nextcloud:
+      entrypoints:
+        - "https"
+      rule: "Host(`nextcloud.bestbrook.me`)"
+      middlewares:
+        - https-redirect
+        - nextcloud-secure-headers
+      tls:
+        domains:
+          - main: "nextcloud.bestbrook.me"
+      service: nextcloud
+    portainer:
+      entrypoints:
+        - "https"
+      rule: "Host(`portainer.bestbrook.me`)"
+      middlewares:
+        - https-redirect
+      tls:
+        domains:
+          - main: "portainer.bestbrook.me"
+      service: portainer1
+    bitwarden:
+      entrypoints:
+        - "https"
+      rule: "Host(`bitwarden.bestbrook.me`)"
+      middlewares:
+        - https-redirect
+      tls:
+        domains:
+          - main: "bitwarden.bestbrook.me"
+      service: bitwarden
+    recipes_nginx:
+      entrypoints:
+        - "https"
+      rule: "Host(`recipes.bestbrook.me`)"
+      middlewares:
+        - https-redirect
+      tls:
+        domains:
+          - main: "recipes.bestbrook.me"
+      service: recipes_nginx
+    plex:
+      entrypoints:
+        - "https"
+      rule: "Host(`plex.bestbrook.me`)"
+      middlewares:
+        - https-redirect
+      tls:
+        domains:
+          - main: "plex.bestbrook.me"
+      service: plex
+    plex_direct:
+      entrypoints:
+        - "https"
+      rule: "Host(`plex.direct`)"
+      middlewares:
+        - https-redirect
+      tls:
+        domains:
+          - main: "plex.direct"
+      service: plex
+    sonarr:
+      entrypoints:
+        - "https"
+      rule: "Host(`sonarr.bestbrook.me`)"
+      middlewares:
+        - https-redirect
+      tls:
+        domains:
+          - main: "sonarr.bestbrook.me"
+      service: sonarr
+    radarr:
+      entrypoints:
+        - "https"
+      rule: "Host(`radarr.bestbrook.me`)"
+      middlewares:
+        - https-redirect
+      tls:
+        domains:
+          - main: "radarr.bestbrook.me"
+      service: radarr
+    prowlarr:
+      entrypoints:
+        - "https"
+      rule: "Host(`prowlarr.bestbrook.me`)"
+      middlewares:
+        - https-redirect
+      tls:
+        domains:
+          - main: "prowlarr.bestbrook.me"
+      service: prowlarr
+    bookstack:
+      entrypoints:
+        - "https"
+      rule: "Host(`bookstack.bestbrook.me`)"
+      middlewares:
+        - https-redirect
+      tls:
+        domains:
+          - main: "bookstack.bestbrook.me"
+      service: bookstack
+    deluge:
+      entrypoints:
+        - "https"
+      rule: "Host(`deluge.bestbrook.me`)"
+      middlewares:
+        - https-redirect
+      tls:
+        domains:
+          - main: "deluge.bestbrook.me"
+      service: deluge
+    homer:
+      entrypoints:
+        - "https"
+      rule: "Host(`bestbrook.me`)"
+      middlewares:
+        - https-redirect
+      tls:
+        domains:
+          - main: "bestbrook.me"
+      service: homer
+  services:
+    paperless:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:8132"
+        passHostHeader: true
+    adminer:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:8081"
+        passHostHeader: true
+    nextcloud:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:11000"
+        passHostHeader: true
+    portainer1:
+      loadBalancer:
+        servers:
+          - url: "http://172.20.2.2:9000"
+        passHostHeader: true
+    bitwarden:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:6060"
+        passHostHeader: true
+    recipes_nginx:
+      loadBalancer:
+        servers:
+          - url: "http://172.20.8.5:80"
+        passHostHeader: true
+    plex:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:32400"
+        passHostHeader: true
+    sonarr:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:8989"
+        passHostHeader: true
+    radarr:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:7878"
+        passHostHeader: true
+    prowlarr:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:9696"
+        passHostHeader: true
+    bookstack:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:6875"
+        passHostHeader: true
+    deluge:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:8112"
+        passHostHeader: true
+    homer:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:8092"
+        passHostHeader: true
+  middlewares:
+    https-redirect:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+    nextcloud-secure-headers:
+      headers:
+        hostsProxyHeaders:
+          - "X-Forwarded-Host"
+        referrerPolicy: "same-origin"
+        customResponseHeaders:
+          X-Robots-Tag: "none"

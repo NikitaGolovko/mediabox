@@ -1,0 +1,111 @@
+name: audiobooks
+
+services:
+
+  audiobookshelf:
+    container_name: audiobookshelf
+    image: ghcr.io/advplyr/audiobookshelf:latest
+
+    ports:
+      - 13378:80
+
+    volumes:
+      - ${DATA}/Books:/audiobooks
+      - ${DATA}/podcasts:/podcasts
+      - audiobooksconfig:/config
+      - metadata:/metadata
+
+    environment:
+      - TZ=${TIMEZONE}
+
+    networks:
+      mediabox_network_main:
+        ipv4_address: 172.20.7.40
+
+    restart: unless-stopped
+
+
+  readmeabook:
+    image: ghcr.io/kikootwo/readmeabook:latest
+    container_name: readmeabook
+
+    ports:
+      - 3030:3030
+
+    volumes:
+      - readmeabook-config:/app/config
+      - readmeabook-cache:/app/cache
+
+      # Must match Deluge's internal download path
+      - ${DOWNLOADS}/torrents:/downloads
+
+      # Same audiobook library used by Audiobookshelf
+      - ${DATA}/Books:/media
+
+      # Internal PostgreSQL / Redis persistence
+      - readmeabook-pgdata:/var/lib/postgresql/data
+      - readmeabook-redis:/var/lib/redis
+
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      UMASK: "002"
+      TZ: ${TIMEZONE}
+
+    networks:
+      mediabox_network_main:
+        ipv4_address: 172.20.7.45
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3030/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    restart: unless-stopped
+
+
+volumes:
+
+  audiobooksconfig:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/audiobooks/config
+
+  metadata:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/audiobooks/metadata
+
+  readmeabook-config:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/audiobooks/readmeabook/config
+
+  readmeabook-cache:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/audiobooks/readmeabook/cache
+
+  readmeabook-pgdata:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/audiobooks/readmeabook/pgdata
+
+  readmeabook-redis:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CONTAINERS}/audiobooks/readmeabook/redis

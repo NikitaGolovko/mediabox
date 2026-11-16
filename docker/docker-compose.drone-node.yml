@@ -1,0 +1,16 @@
+services:
+  webodm_webapp:
+    depends_on:
+      - node-odm
+    environment:
+      - WO_DEFAULT_NODES
+  node-odm:
+    container_name: node-odm
+    image: opendronemap/nodeodm
+    expose:
+      - "3000"
+    networks:
+      mediabox_network_main:
+        ipv4_address: 172.20.12.6
+    restart: unless-stopped
+    oom_score_adj: 500
