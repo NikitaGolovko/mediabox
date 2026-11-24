@@ -1,40 +1,40 @@
 #version: '3.9'
 
 services:
-  plex:
-    image: linuxserver/plex
-    container_name: plex
-    networks:
-      mediabox_network_main:
-        ipv4_address: 172.20.7.5
-    ports:
-      - 32400:32400/tcp
-      - 32400:32400/udp
-      - 3005:3005/tcp
-      - 8324:8324/tcp
-      - 32469:32469/tcp
-      - 1900:1900/udp
-      - 32410:32410/udp
-      - 32412:32412/udp
-      - 32413:32413/udp
-      - 32414:32414/udp
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
-    environment:
-      - PUID=${PUID}
-      - PGID=1001
-      - VERSION=docker
-      - ADVERTISE_IP="https://plex.${DOMAIN}:443"
-      - PLEX_CLAIM=${PLEX_CLAIM}
-    volumes:
-      - ${CONTAINERS}/plex/config:/config
-      - ${DATA}/Movies:/movies
-      - ${DATA}/TV:/tv
-      - ${DATA}/Music:/music
-      - ${DATA2}/movies:/movies2
-      - ${DATA2}/tv:/tv2
+  # plex:
+  #   image: linuxserver/plex
+  #   container_name: plex
+  #   networks:
+  #     mediabox_network_main:
+  #       ipv4_address: 172.20.7.5
+  #   ports:
+  #     - 32400:32400/tcp
+  #     - 32400:32400/udp
+  #     - 3005:3005/tcp
+  #     - 8324:8324/tcp
+  #     - 32469:32469/tcp
+  #     - 1900:1900/udp
+  #     - 32410:32410/udp
+  #     - 32412:32412/udp
+  #     - 32413:32413/udp
+  #     - 32414:32414/udp
+  #   labels:
+  #     - com.centurylinklabs.watchtower.enable=true
+  #   environment:
+  #     - PUID=${PUID}
+  #     - PGID=1001
+  #     - VERSION=docker
+  #     - ADVERTISE_IP="https://plex.${DOMAIN}:443"
+  #     - PLEX_CLAIM=${PLEX_CLAIM}
+  #   volumes:
+  #     - ${CONTAINERS}/plex/config:/config
+  #     - ${DATA}/Movies:/movies
+  #     - ${DATA}/TV:/tv
+  #     - ${DATA}/Music:/music
+  #     - ${DATA2}/movies:/movies2
+  #     - ${DATA2}/tv:/tv2
 
-    restart: unless-stopped
+  #   restart: unless-stopped
 
   jellyfin:
     image: jellyfin/jellyfin:latest
@@ -291,7 +291,32 @@ services:
       - ADMIN_USER=${SUBWAVE_ADMIN_USER}
       - ADMIN_PASS=${SUBWAVE_ADMIN_PASS}
       - SITE_URL=https://radio.${DOMAIN}
-      - TZ=America/New_York
+      - TZ=America/New_York      
+      - TTS_HEAVY_URL=http://tts-heavy:8080
     volumes:
       - ${CONTAINERS}/subwave/data:/var/sub-wave
     restart: unless-stopped
+
+  # -----------------------------------------
+  # SUBWAVE - CHATTERBOX VOICE CLONING
+  # -----------------------------------------
+  tts-heavy:
+    image: ghcr.io/perminder-klair/subwave-tts-heavy:latest
+    container_name: sub-wave-tts-heavy
+    platform: linux/amd64
+    networks:
+      - mediabox_network_main
+    environment:
+      - TTS_HEAVY_DEVICE=cpu
+      - TTS_HEAVY_ENGINES=chatterbox
+    volumes:
+      - ${CONTAINERS}/subwave/data:/var/sub-wave
+      - tts-heavy-chatterbox-cache:/opt/chatterbox/hf-cache
+    mem_limit: 10g
+    restart: unless-stopped
+
+# -----------------------------------------
+# PERSISTENT VOLUMES
+# -----------------------------------------
+volumes:
+  tts-heavy-chatterbox-cache:
